@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가족축제 집계 현황 | 관리자</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --accent: #f97316;
+      --accent2: #fbbf24;
+      --text: #0f172a;
+      --muted: #94a3b8;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* 헤더 */
+    header {
+      background: var(--text);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #4ade80;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* 메인 컨텐츠 */
+    main {
+      padding: 24px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* 총 인원 카드 */
+    .total-card {
+      background: linear-gradient(135deg, var(--text) 0%, #1e293b 100%);
+      border-radius: 20px;
+      padding: 32px 28px;
+      color: white;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .total-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(249,115,22,0.15);
+    }
+
+    .total-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .total-number {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 80px;
+      line-height: 1;
+      background: linear-gradient(135deg, #f97316, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: all 0.3s ease;
+    }
+
+    .total-unit {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .last-update {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 통계 그리드 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 32px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-unit {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* 시간대별 차트 */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 80px;
+    }
+
+    .bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .bar-count {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .bar {
+      width: 100%;
+      background: linear-gradient(to top, var(--accent), var(--accent2));
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.5s ease;
+    }
+
+    .bar-time {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* 최근 입장 로그 */
+    .log-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 10px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .log-num {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 18px;
+      color: var(--accent);
+      min-width: 48px;
+    }
+
+    .log-time {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .log-badge {
+      margin-left: auto;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    /* 새로고침 버튼 */
+    .refresh-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .refresh-btn:hover { background: #ea6a10; transform: translateY(-1px); }
+    .refresh-btn:active { transform: translateY(0); }
+    .refresh-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+    /* 자동 갱신 토글 */
+    .auto-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .auto-label { font-size: 14px; font-weight: 500; }
+    .auto-sub { font-size: 12px; color: var(--muted); }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle input { display: none; }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider { background: var(--accent); }
+    input:checked + .slider::before { transform: translateX(20px); }
+
+    /* 비밀번호 화면 */
+    .pw-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 24px;
+    }
+
+    .pw-box {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+    }
+
+    .pw-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 20px;
+      color: white;
+      margin-bottom: 6px;
+    }
+
+    .pw-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 24px;
+    }
+
+    .pw-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      outline: none;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .pw-input:focus { border-color: var(--accent); }
+
+    .pw-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .pw-error {
+      font-size: 12px;
+      color: #f87171;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    .empty-log {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 비밀번호 화면 -->
+  <div class="pw-overlay" id="pw-overlay">
+    <div class="pw-box">
+      <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+      <div class="pw-title">관리자 페이지</div>
+      <div class="pw-sub">비밀번호를 입력하세요</div>
+      <input type="password" class="pw-input" id="pw-input" placeholder="• • • • • •" maxlength="20">
+      <button class="pw-btn" onclick="checkPw()">입장</button>
+      <div class="pw-error" id="pw-error"></div>
+    </div>
+  </div>
+
+  <header>
+    <div>
+      <div class="header-title">가족축제 집계 현황</div>
+      <div class="header-sub">울산동구가족센터 · 관리자</div>
+    </div>
+    <div class="live-dot">
+      <div class="dot"></div>
+      LIVE
+    </div>
+  </header>
+
+  <main>
+    <!-- 총 참여자 -->
+    <div class="total-card">
+      <div class="total-label">총 참여자 수</div>
+      <div class="total-number" id="total-count">—</div>
+      <div class="total-unit">명</div>
+      <div class="last-update" id="last-update">마지막 갱신: —</div>
+    </div>
+
+    <!-- 통계 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">최근 1시간</div>
+        <div class="stat-value" id="recent-count">—</div>
+        <div class="stat-unit">명 입장</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">시간당 평균</div>
+        <div class="stat-value" id="avg-count">—</div>
+        <div class="stat-unit">명/시간</div>
+      </div>
+    </div>
+
+    <!-- 시간대별 차트 -->
+    <div class="chart-card">
+      <div class="card-title">시간대별 입장 현황</div>
+      <div class="chart-bars" id="chart-bars">
+        <div class="empty-log" style="width:100%">데이터 로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 자동 갱신 -->
+    <div class="auto-row">
+      <div>
+        <div class="auto-label">자동 갱신</div>
+        <div class="auto-sub">30초마다 자동으로 업데이트</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="auto-toggle" checked onchange="toggleAuto()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- 수동 새로고침 -->
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchData()">
+      🔄 지금 새로고침
+    </button>
+
+    <!-- 최근 입장 로그 -->
+    <div class="log-card" style="margin-top:20px;">
+      <div class="card-title">최근 입장 기록</div>
+      <div class="log-list" id="log-list">
+        <div class="empty-log">데이터 로딩 중...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ================================================
+    // ★ 설정값 - Google Apps Script 배포 URL로 교체 ★
+    // ================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzY4e-p1y3lLRHWQL4_X0UHVsiYGT3ioRqI3LMl8TbH_GDUhQvIav7Up2FUJOSs9fK5lg/exec';
+    const ADMIN_PASSWORD = '1234'; // ← 원하는 비밀번호로 변경
+    // ================================================
+
+    let autoTimer = null;
+
+    // 비밀번호 확인
+    function checkPw() {
+      const val = document.getElementById('pw-input').value;
+      if (val === ADMIN_PASSWORD) {
+        document.getElementById('pw-overlay').style.display = 'none';
+        fetchData();
+        startAuto();
+      } else {
+        document.getElementById('pw-error').textContent = '비밀번호가 올바르지 않습니다.';
+        document.getElementById('pw-input').value = '';
+      }
+    }
+
+    document.getElementById('pw-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkPw();
+    });
+
+    // 데이터 로드
+    async function fetchData() {
+      const btn = document.getElementById('refresh-btn');
+      btn.disabled = true;
+      btn.textContent = '로딩 중...';
+
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=admin');
+        const data = await res.json();
+        renderData(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 지금 새로고침';
+      }
+    }
+
+    function renderData(data) {
+      const now = new Date();
+
+      // 총계
+      document.getElementById('total-count').textContent = data.total ?? 0;
+      document.getElementById('last-update').textContent =
+        `마지막 갱신: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+
+      // 최근 1시간
+      document.getElementById('recent-count').textContent = data.recentHour ?? 0;
+
+      // 시간당 평균
+      document.getElementById('avg-count').textContent = data.avgPerHour ?? 0;
+
+      // 차트
+      renderChart(data.hourly ?? []);
+
+      // 로그
+      renderLog(data.recent ?? []);
+    }
+
+    function renderChart(hourly) {
+      const el = document.getElementById('chart-bars');
+      if (!hourly.length) {
+        el.innerHTML = '<div class="empty-log" style="width:100%">아직 입장 기록이 없습니다</div>';
+        return;
+      }
+
+      const max = Math.max(...hourly.map(h => h.count), 1);
+      el.innerHTML = hourly.map(h => `
+        <div class="bar-wrap">
+          <div class="bar-count">${h.count || ''}</div>
+          <div class="bar" style="height:${Math.max((h.count / max) * 64, h.count > 0 ? 4 : 0)}px"></div>
+          <div class="bar-time">${h.hour}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderLog(recent) {
+      const el = document.getElementById('log-list');
+      if (!recent.length) {
+        el.innerHTML = '<div class="empty-log">아직 입장 기록이 없습니다</div>';
+        return;
+      }
+
+      el.innerHTML = recent.map(r => `
+        <div class="log-item">
+          <div class="log-num">${r.number}번</div>
+          <div class="log-time">${r.time}</div>
+          <div class="log-badge">입장완료</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleAuto() {
+      const checked = document.getElementById('auto-toggle').checked;
+      if (checked) {
+        startAuto();
+      } else {
+        clearInterval(autoTimer);
+      }
+    }
+
+    function startAuto() {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(fetchData, 30000);
+    }
+  </script>
+</body>
+</html>
